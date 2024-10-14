@@ -5,8 +5,9 @@
 static luaL_newstate_t luaL_newstate_fptr   = (luaL_newstate_t)0x00742010;
 static luaL_newstate_t luaL_newstate_fptr_o = nullptr;
 
-void*           lua_tostring       = (void*)0x0073b2b0;
+lua_tostring_t  lua_tostring       = (lua_tostring_t)0x0073b2b0;
 luaL_loadfile_t luaL_loadfile_fptr = (luaL_loadfile_t)0x0073c660;
+lua_pcall_t     lua_pcall          = (lua_pcall_t)0x0073ba70;
 
 void* g_lua_state = nullptr;
 

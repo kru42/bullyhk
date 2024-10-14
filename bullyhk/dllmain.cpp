@@ -47,8 +47,25 @@ void __fastcall FUN_005daac0_hk(void* this_ptr, void* edx, char param)
         if (g_lua_state != nullptr)
         {
             printf("calling luaL_loadfile\n");
-            int result = luaL_loadfile_fptr(g_lua_state, "E:\\bullyhk\\test.lua");
+            int result = luaL_loadfile_fptr(g_lua_state, "E:\\bullyhk\\test.out");
             printf("luaL_loadfile result: %d\n", result);
+            if (result != 0)
+            {
+                const char* error = lua_tostring(g_lua_state, -1);
+                printf("luaL_loadfile error: %s\n", error);
+            }
+            else
+            {
+                // execute the script
+                printf("calling lua_pcall\n");
+                result = lua_pcall(g_lua_state, 0, 0, 0);
+                printf("lua_pcall result: %d\n", result);
+                if (result != 0)
+                {
+                    const char* error = lua_tostring(g_lua_state, -1);
+                    printf("lua_pcall error: %s\n", error);
+                }
+            }
         }
     }
 
