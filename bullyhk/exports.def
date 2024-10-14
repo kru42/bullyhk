@@ -1,0 +1,9 @@
+LIBRARY
+EXPORTS
+	XInputGetState=shim_h_XInputGetState @1
+	XInputSetState=shim_h_XInputSetState @2
+	XInputGetCapabilities=shim_h_XInputGetCapabilities @3
+	XInputEnable=shim_h_XInputEnable @4
+	XInputGetDSoundAudioDeviceGuids=shim_h_XInputGetDSoundAudioDeviceGuids @5
+	XInputGetBatteryInformation=shim_h_XInputGetBatteryInformation @7
+	XInputGetKeystroke=shim_h_XInputGetKeystroke @8
