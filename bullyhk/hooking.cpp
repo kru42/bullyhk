@@ -24,7 +24,7 @@ void install_hook(void* fptr, void* hook, void** original)
     if (MH_CreateHook(fptr, hook, original) != MH_OK)
     {
         std::cout << "Failed to create hook." << std::endl;
-        exit(-1);
+        return;
     }
 
     if (MH_EnableHook(fptr) != MH_OK)

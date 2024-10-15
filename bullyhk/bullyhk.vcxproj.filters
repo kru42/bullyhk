@@ -45,6 +45,12 @@
     <ClCompile Include="hooking.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dx9_hook.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="editor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="shims.asm">
@@ -69,6 +75,9 @@
     </ClInclude>
     <ClInclude Include="lauxlib.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dx9_hook.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
