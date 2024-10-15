@@ -108,6 +108,7 @@
     </ClCompile>
     <ClCompile Include="dx9_hook.cpp" />
     <ClCompile Include="editor.cpp" />
+    <ClCompile Include="editor.h" />
     <ClCompile Include="hooking.cpp" />
     <ClCompile Include="lua_hook.cpp" />
     <ClCompile Include="stdafx.cpp">

@@ -14,4 +14,6 @@ int        lua_exec_source(const char* buff);
 int        lua_exec_filename(const char* filename);
 lua_State* get_lua_state();
 
+extern lua_tostring_t game_lua_tostring;
+
 } // namespace lhk

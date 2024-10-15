@@ -48,6 +48,9 @@
     <ClCompile Include="dx9_hook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="editor.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="editor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

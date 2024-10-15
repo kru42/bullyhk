@@ -2,6 +2,7 @@
 
 #include "hooking.h"
 #include "lua_hook.h"
+#include "editor.h"
 
 typedef HRESULT(__stdcall* EndScene_t)(LPDIRECT3DDEVICE9 pDevice);
 static EndScene_t EndScene_o = nullptr;
@@ -12,28 +13,37 @@ DWORD* vTable = nullptr;
 
 bool g_ImGuiCaptureEnabled = false;
 
-static HWND    g_hWnd;
-static WNDPROC WndProc_o = nullptr;
+static HWND    g_hWnd       = nullptr;
+static HWND    g_input_hWnd = nullptr;
+static WNDPROC WndProc_o    = nullptr;
 
 void toggle_imgui_capture()
 {
     g_ImGuiCaptureEnabled = !g_ImGuiCaptureEnabled;
     if (g_ImGuiCaptureEnabled)
     {
-        ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantTextInput || ImGui::GetIO().WantCaptureKeyboard;
-        ShowCursor(TRUE);
+        ImGui::GetIO().WantCaptureMouse    = true;
+        ImGui::GetIO().WantCaptureKeyboard = true;
     }
     else
     {
         ImGui::GetIO().WantCaptureMouse    = false;
         ImGui::GetIO().WantCaptureKeyboard = false;
-        ShowCursor(FALSE);
     }
 }
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT APIENTRY              WndProcHk(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    if (uMsg == WM_ACTIVATE)
+    {
+        if (LOWORD(wParam) == WA_INACTIVE)
+        {
+            // Make the window stay active when unfocused
+            return 0;
+        }
+    }
+
     if (g_ImGuiCaptureEnabled)
     {
         ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
@@ -45,13 +55,15 @@ LRESULT APIENTRY              WndProcHk(HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 
 HRESULT __stdcall EndScene_hk(LPDIRECT3DDEVICE9 pDevice)
 {
-    if (g_pd3dDevice == nullptr)
+    if (g_pd3dDevice == nullptr && g_input_hWnd != nullptr)
     {
         g_pd3dDevice = pDevice;
 
-        WndProc_o = (WNDPROC)SetWindowLongPtr(g_hWnd, GWLP_WNDPROC, (LONG_PTR)WndProcHk);
-
         ImGui::CreateContext();
+
+        // Enable input
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
 
         ImGuiIO& io = ImGui::GetIO();
         // io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
@@ -62,22 +74,25 @@ HRESULT __stdcall EndScene_hk(LPDIRECT3DDEVICE9 pDevice)
         ImGui::StyleColorsDark();
 
         // Setup rendering
-        ImGui_ImplWin32_Init(g_hWnd);
         ImGui_ImplDX9_Init(pDevice);
+        ImGui_ImplWin32_Init(g_input_hWnd);
         ImGui_ImplDX9_CreateDeviceObjects();
-
-        toggle_imgui_capture();
     }
 
-    ImGui_ImplDX9_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
+    if (g_pd3dDevice != nullptr)
+    {
+        static ImGuiLuaEditor editor;
 
-    ImGui::ShowDemoWindow();
+        ImGui_ImplDX9_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
 
-    ImGui::EndFrame();
-    ImGui::Render();
-    ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+        editor.Render();
+
+        ImGui::EndFrame();
+        ImGui::Render();
+        ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+    }
 
     return EndScene_o(pDevice);
 }
@@ -89,13 +104,19 @@ HRESULT __stdcall SetCooperativeLevel_hk(IDirectInputDevice8* pDevice, HWND hWnd
 {
     std::cout << "SetCooperativeLevel called with flags " << dwFlags << std::endl;
 
-    if (hWnd != g_hWnd)
-    {
-        dwFlags &= ~DISCL_EXCLUSIVE;
-        dwFlags |= DISCL_NONEXCLUSIVE;
-    }
+    // if (hWnd != g_hWnd)
+    //{
+    dwFlags &= ~DISCL_EXCLUSIVE;
+    dwFlags |= DISCL_NONEXCLUSIVE;
+    //}
 
     return SetCooperativeLevel_o(pDevice, hWnd, dwFlags);
+}
+
+void install_win32_hooks(HWND hWnd)
+{
+    g_input_hWnd = hWnd;
+    WndProc_o    = (WNDPROC)SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)WndProcHk);
 }
 
 // Create a dummy Direct3D9 device to retrieve the vtable
@@ -119,7 +140,6 @@ void init(HWND hWnd)
 
     void** dinput8_vtable = *(void***)pDIDevice;
     install_hook(dinput8_vtable[13], &SetCooperativeLevel_hk, (void**)&SetCooperativeLevel_o);
-
 
     // Initialize the Direct3D9 object
     auto dummy_d3d = Direct3DCreate9(D3D_SDK_VERSION);

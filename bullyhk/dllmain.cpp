@@ -53,6 +53,10 @@ HWND __stdcall CreateWindowExA_hk(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lp
         // install game loop hook
         install_hook(LuaScript_Update_fptr, &FUN_005daac0_hk, &LuaScript_Update_fptr_o);
     }
+    else
+    {
+        install_win32_hooks(hWnd);
+    }
 
     return hWnd;
 }
