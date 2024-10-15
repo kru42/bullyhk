@@ -38,46 +38,19 @@ int luaL_loadbuffer_custom(const char* buff)
     // calc buffer size
     size_t size = strlen(buff);
 
-    FILE* file = fopen("E:\\bullyhk\\custom_dummy.out", "wb");
-    if (file == nullptr)
-    {
-        printf("Failed to open file for writing.\n");
-        return -1;
-    }
-
-    // load the script with our loader
-    printf("compiling source: %s\n", buff);
-
-    // create a dummy lua state
-    auto ls_dummy = luaL_newstate_fptr_o();
-    int result = luaL_loadbuffer(ls_dummy, buff, size, "custom");
+    int result = luaL_loadbuffer(g_lua_state, buff, size, "custom");
     if (result != 0)
     {
-        printf("Failed to load buffer.\n");
+        printf("Failed to load buffer: %s\n", game_lua_tostring(g_lua_state, -1));
         return result;
     }
 
-    // dump the bytecode to a file
-    lua_dump(ls_dummy, writer, file);
-    fclose(file);
-
-    printf("Bytecode dumped to file.\n");
-
-    // load the dumped bytecode
-    game_luaL_loadfile_fptr(g_lua_state, "E:\\bullyhk\\custom_dummy.out");
-
-    // remove the file
-    remove("E:\\bullyhk\\custom_dummy.out");
-
     // call the script
-    printf("calling lua_pcall\n");
+    printf("calling game lua_pcall\n");
     result = game_lua_pcall(g_lua_state, 0, 0, 0);
     if (result != 0)
     {
         printf("Failed to call script: %s\n", game_lua_tostring(g_lua_state, -1));
-
-        // pop the error message
-        lua_pop(g_lua_state, 1);
     }
 
     return 0;
