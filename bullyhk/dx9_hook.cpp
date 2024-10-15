@@ -12,6 +12,7 @@ DWORD* vTable = nullptr;
 
 bool g_ImGuiCaptureEnabled = false;
 
+static HWND    g_hWnd;
 static WNDPROC WndProc_o = nullptr;
 
 void toggle_imgui_capture()
@@ -48,7 +49,7 @@ HRESULT __stdcall EndScene_hk(LPDIRECT3DDEVICE9 pDevice)
     {
         g_pd3dDevice = pDevice;
 
-        WndProc_o = (WNDPROC)SetWindowLongPtr(FindWindow(nullptr, L"Bully"), GWLP_WNDPROC, (LONG_PTR)WndProcHk);
+        WndProc_o = (WNDPROC)SetWindowLongPtr(g_hWnd, GWLP_WNDPROC, (LONG_PTR)WndProcHk);
 
         ImGui::CreateContext();
 
@@ -61,7 +62,7 @@ HRESULT __stdcall EndScene_hk(LPDIRECT3DDEVICE9 pDevice)
         ImGui::StyleColorsDark();
 
         // Setup rendering
-        ImGui_ImplWin32_Init(FindWindow(nullptr, L"Bully"));
+        ImGui_ImplWin32_Init(g_hWnd);
         ImGui_ImplDX9_Init(pDevice);
         ImGui_ImplDX9_CreateDeviceObjects();
 
@@ -88,8 +89,11 @@ HRESULT __stdcall SetCooperativeLevel_hk(IDirectInputDevice8* pDevice, HWND hWnd
 {
     std::cout << "SetCooperativeLevel called with flags " << dwFlags << std::endl;
 
-    dwFlags &= ~DISCL_EXCLUSIVE;
-    dwFlags |= DISCL_NONEXCLUSIVE;
+    if (hWnd != g_hWnd)
+    {
+        dwFlags &= ~DISCL_EXCLUSIVE;
+        dwFlags |= DISCL_NONEXCLUSIVE;
+    }
 
     return SetCooperativeLevel_o(pDevice, hWnd, dwFlags);
 }
@@ -155,6 +159,7 @@ void init(HWND hWnd)
 
 void install_dx9_hooks(HWND hWnd)
 {
+    g_hWnd = hWnd;
     init(hWnd);
 
     install_hook((void*)vTable[42], &EndScene_hk, (void**)&EndScene_o);
