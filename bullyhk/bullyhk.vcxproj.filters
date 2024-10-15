@@ -61,5 +61,14 @@
     <ClInclude Include="hooking.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="lua.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lualib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lauxlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
